@@ -1,0 +1,93 @@
+Quinton Odenthal
+CSCE A248
+11/30/22
+Homework #4
+
+
+1)
+	In the machine code for an LDR instruction there are 12 bits for the offset value. 2^12 = 4096. That means that you can have an offset value of 0-4095. There is also another bit in location 23 that signals if the offset is negative or positive. This leaves a potential offset range of -4095 - 4095.
+
+2)
+	
+0000 - EQ
+0001 - NE
+0010 - CS
+0011 - CC
+0100 - MI
+0101 - PL
+0110 - VS
+0111 - VC
+1000 - HI
+1001 - LS
+1010 - GE
+1011 - LT
+1100 - GT
+1101 - LE
+1110 - AL
+1111 - Not Assigned
+
+3)
+	
+# of bits |     4      |           3           |               1                |               24              |
+Function  | Cond. Code | Branch operation: 101 | Yes or no: Save Return Address | Offset: 2’s complement signed |
+
+
+24 bits for offset = 2^24 = 16,777,216 total
+2’s complement means -8,388,607 - 8,388,608 available offset values
+
+4)
+	
+.global _start
+_start:
+
+	mov r0, #0b000000110000000000000000000000
+	mov r1, #0b000000110000000000000000000000
+	
+	BL addfloat
+	B end
+	
+addfloat:
+	push {r4, r5} // Borrowing registers
+	mov r2, r0 // Copying num1
+	mov r3, r1 // Copying num2
+	
+	lsl r0, r0, #9 // Shifting to find fraction
+	lsr r0, r0, #9
+	lsl r1, r1, #9 // Shifting to find fraction
+	lsr r1, r1, #9
+	
+	lsr r2, r2, #23 // Shifting to find exponant
+	lsr r3, r3, #23	// Shifting to find exponant
+	
+	sub r4, r2, r3
+	
+	cmp r4, #0
+	
+	// lt: exp1 is less than exp2, need to shift fraction 1
+	// gt: exp1 is greater than exp2, need to shift fraction 2
+	// eq: exp1 is equal to exp2, no shifting required
+	
+	rsblt r4, r4, #0 // Flipping sign
+	lsrlt r0, r0, r4 // Shifting fraction 1
+	lsrgt r1, r1, r4 // Shifting fraction 2
+	
+	add r0, r0, r1 // Adding fractions, storing to r0
+	movlt r1, r3 // Store largest exp
+	movgt r1, r2
+	moveq r1, r2
+	
+	mov r5, #0x0040000 // Largest fraction value posible
+	cmp r0, r5 // Camparing fraction sum to max fraction value
+	
+	lsrgt r0, r0, #1 // If frac. sum is greater than max frac. lsr by 1 and increment r0
+	addgt r1, r1, #1
+	
+	lsl r1, r1, #23 // Shifting exp. to correct location
+	add r0, r0, r1 // Add fraction and exp and return
+	
+	pop {r4, r5} // Returning registers
+	
+	BX LR
+	
+end:
+	

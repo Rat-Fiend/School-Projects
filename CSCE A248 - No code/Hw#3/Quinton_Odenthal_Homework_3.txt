@@ -1,0 +1,138 @@
+Quinton Odenthal
+CSCE A248
+Homework #3
+
+
+- Problem #1:
+
+.global _start
+_start:
+	
+	// Loading size of array to 0x20004000
+	ldr r0, =0x20004000
+	mov r1, #7
+	str r1, [r0]
+	
+	// Assigning array size and location values
+	ldr r1, =arr_addr
+	ldr r0, [r0]
+	BL findminmax
+	B end
+	
+findminmax:
+	push {r4-r8} // Store values of registers
+	ldr r2, [r1] // Load r2 with the value stored at arr_addr[0], current min
+	mov r3, #0 // Load r3 with index of current min
+	ldr r4, [r1] // Load r4 with the value stored at arr_addr[0], current max
+	mov r5, #0 // Load r5 with index of current max
+	mov r6, #1 // r6 will store current array index
+	B outerloop
+
+outerloop:
+	cmp r6, r0 // Compare array index to array size
+	BLT innerloop // If index is less than array size
+	mov r0, r2 // Load min to r0
+	mov r1, r3 // Load min index to r1
+	mov r2, r4 // Load max to r2
+	mov r3, r5 // Load max index to r3
+	pop {r4-r8} // Load pre-loop register values back to registers
+	BX LR // Exit subroutine
+	
+innerloop:
+	lsl r6, r6, #2 // Multiply array index by 4
+	ldr r7, [r1, r6] // Load r7 with the value stored at arr_addr[r6]
+	lsr r6, r6, #2 // Divide array index by 4
+	cmp r7, r2 // Compare new array element with current min
+	movlt r2, r7 // Assign new current min if new array element < current min
+	movlt r3, r6 // Assing new current min index if new array element < current min
+	cmp r7, r4 // Compare new array element with current max
+	movgt r4, r7 // Assign new current max if new array element > current max
+	movgt r5, r6 // Assing new current max index if new array element > current max
+	add r6, r6, #1 // Increments array index
+	B outerloop
+end:
+	
+	
+.data
+	
+.balign 4
+
+arr_addr:
+	.word	10
+	.word	20
+	.word	5
+	.word	0
+	.word	-1
+	.word	-10
+	.word	50
+
+
+
+- Problem #2:
+
+.global _start
+_start:
+	
+	// Assigning array size and location values
+	ldr r0, =arr_addr
+	mov r1, #7
+	mov r2, #5 // Target value
+	
+	// Call subroutine
+	BL findnum
+	B end
+	
+findnum:
+	push {r5} // Store register value
+	mov r4, #0 // r4 will store array index
+	B outerloop
+	
+outerloop:
+	cmp r4, r1 // Compare array index to array size
+	BLT innerloop // If array index is less than array size
+	
+	// If target is not in array
+	
+	mov r0, #-1 // Set result to not found value
+	pop {r5} // Set register value
+	BX LR
+	
+	
+innerloop:
+	lsl r4, r4, #2 // Multiply by 4
+	ldr r5, [r0, r4] // Load value at array[r4] to r5
+	lsr r4, r4, #2 // Divide by 4
+	cmp r5, r2 // Compare array element to target value
+	addne r4, r4, #1 // Increment array index
+	BNE outerloop // Try next array element
+	
+	// If target is found
+	
+	mov r0, r4 // Set array index of found target
+	pop {r5} // Set register value
+	BX LR // Exit subroutine
+	
+end:
+
+	
+.data
+	
+.balign 4
+
+arr_addr:
+	.word	10
+	.word	20
+	.word	5
+	.word	0
+	.word	-1
+	.word	-10
+	.word	50
+
+arr_addr:
+	.word	10
+	.word	20
+	.word	5
+	.word	0
+	.word	-1
+	.word	-10
+	.word	50
