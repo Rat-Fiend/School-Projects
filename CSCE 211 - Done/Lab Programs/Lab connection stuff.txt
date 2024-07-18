@@ -1,3 +1,0 @@
-VPN Link Name: anc-vpn01.uaa.alaska.edu/+CSCOE+/noportal.html
-
-Putty Host Name: uaa-cse2.duckdns.org
